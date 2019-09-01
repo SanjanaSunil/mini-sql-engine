@@ -1,6 +1,6 @@
 CXX       = g++
-CPPFLAGS  = -Iinclude -Isql-parser/src
-LIBRARIES = -Wl,-rpath=sql-parser/ -Lsql-parser -lsqlparser
+CPPFLAGS  = -Iinclude
+LIBRARIES = -Wl,-rpath=lib/ -Llib -lsqlparser
 SRC_DIR   = src
 SRCS      = $(wildcard $(SRC_DIR)/*.cpp)
 RM        = rm -rf

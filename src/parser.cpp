@@ -26,16 +26,15 @@ int parse_query(std::string query) {
 
 	for(auto i = 0u; i < result.size(); ++i) 
 	{
-		hsql::SelectStatement* sel = (hsql::SelectStatement*) result.getStatement(i);                                         
-		std::cout << sel->fromTable->getName() << std::endl;
-		std::cout << sel->selectDistinct << std::endl;
-		std::cout << sel->selectList->size() << std::endl;
+		// hsql::SelectStatement* sel = (hsql::SelectStatement*) result.getStatement(i);                                         
+		// std::cout << sel->fromTable->getName() << std::endl;
+		// std::cout << sel->selectDistinct << std::endl;
+		// std::cout << sel->selectList->size() << std::endl;
 
-		std::vector<hsql::Expr*>* list = sel->selectList;
-		for(int j=0; j<sel->selectList->size(); ++j) 
-		{
-			std::cout << "SANJANA: " << (*list)[j]->name << std::endl;
-		}
+		// for(int j=0; j<sel->selectList->size(); ++j) 
+		// {
+		// 	printf("Sanjana: %s\n", (*sel->selectList)[j]->name);
+		// }
 		hsql::printStatementInfo(result.getStatement(i));
 	}
     
