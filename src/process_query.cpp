@@ -26,9 +26,15 @@ void run_query(const hsql::SQLStatement* query) {
 	// std::cout << sel->selectList->size() << std::endl;
 	// for(int j=0; j<sel->selectList->size(); ++j) 
 	// {
-	// 	printf("Sanjana: %s\n", (*sel->selectList)[j]->getName());
-	// 	if((*sel->selectList)[j]->type == 7)
-	// 		printf("Sanjana: %s\n", (*(*sel->selectList)[j]->exprList)[0]->getName());
+	// 	printf("Type: %d\n", (*sel->selectList)[j]->type);
+
+	// 	if((*sel->selectList)[j]->type == 4) printf("Select all\n");
+	// 	else
+	// 	{
+	// 		printf("Name: %s\n", (*sel->selectList)[j]->getName());
+	// 		if((*sel->selectList)[j]->type == 7)
+	// 			printf("Column: %s\n", (*(*sel->selectList)[j]->exprList)[0]->getName());
+	// 	}
 	// }
 
 	return;
