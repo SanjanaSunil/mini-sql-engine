@@ -1,15 +1,18 @@
 #include <iostream>
 #include <string>
 
+#include "read_file.h"
 #include "process_query.h"
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
 
     if(argc != 2)
     {
         std::cout << "Usage: ./a.out \"SQL query\" \n";
         return 1;
     }
+
+    read_metadata("files/metadata.txt");
 
     std::string query = argv[1];
     return process_query(query);
