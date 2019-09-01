@@ -22,10 +22,13 @@ void run_query(const hsql::SQLStatement* query) {
 	// 	std::cout << (*sel->fromTable->list)[i]->name << std::endl;
 	// }
 
+	// Get Table names and aggregate functions
 	// std::cout << sel->selectList->size() << std::endl;
 	// for(int j=0; j<sel->selectList->size(); ++j) 
 	// {
-	// 	printf("Sanjana: %s\n", (*sel->selectList)[j]->name);
+	// 	printf("Sanjana: %s\n", (*sel->selectList)[j]->getName());
+	// 	if((*sel->selectList)[j]->type == 7)
+	// 		printf("Sanjana: %s\n", (*(*sel->selectList)[j]->exprList)[0]->getName());
 	// }
 
 	return;
