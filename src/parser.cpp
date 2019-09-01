@@ -14,7 +14,7 @@ void parse_query(char* query) {
         token = std::strtok(NULL, " ,");
     }
 
-    for(int i=0; i<tokens.size(); ++i) std::cout << tokens[i] << '\n'; 
+    // for(int i=0; i<tokens.size(); ++i) std::cout << tokens[i] << '\n'; 
 
     return;
 } 
