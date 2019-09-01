@@ -4,11 +4,13 @@
 #include <vector>
 #include <unordered_map>
 
-void read_metadata(std::string metadata_file_path) {
+typedef std::unordered_map<std::string, std::vector<std::string>> TABLE_MAP;
+
+TABLE_MAP read_metadata(std::string metadata_file_path) {
 
     std::string line;
     std::ifstream metadata_file (metadata_file_path);
-    std::unordered_map<std::string, std::vector<std::string>> tables;
+    TABLE_MAP tables;
 
     int new_file = 0;
     std::string cur_table = "";
@@ -36,12 +38,6 @@ void read_metadata(std::string metadata_file_path) {
     }
 
     metadata_file.close();
-
-    for(auto i : tables) 
-    {
-        std::cout << i.first << " : ";
-        for(int j = 0; j < i.second.size(); ++j) std::cout << tables[i.first][j] <<  " ";
-        std::cout << std::endl;
-    }    
-    return;
+    
+    return tables;
 }

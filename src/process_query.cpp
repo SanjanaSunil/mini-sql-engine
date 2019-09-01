@@ -1,9 +1,12 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <unordered_map>
 
 #include "SQLParser.h"
 #include "util/sqlhelper.h"
+
+typedef std::unordered_map<std::string, std::vector<std::string>> TABLE_MAP;
 
 void run_query(const hsql::SQLStatement* query) {
 	
@@ -28,7 +31,7 @@ void run_query(const hsql::SQLStatement* query) {
 	return;
 } 
 
-int process_query(std::string query) {
+int process_query(std::string query, TABLE_MAP tables) {
 
     hsql::SQLParserResult result;
     hsql::SQLParser::parse(query, &result);
@@ -44,7 +47,6 @@ int process_query(std::string query) {
 		return 1;
     }
 
-	// printf("Parsed successfully!\n");
 	// printf("Number of statements: %lu\n\n", result.size());
 
 	for(auto i = 0u; i < result.size(); ++i) 
