@@ -1,20 +1,43 @@
 #include <iostream>
 #include <vector>
-#include <cstring>
 #include <string>
 
-void parse_query(char* query) {
+#include "SQLParser.h"
+#include "util/sqlhelper.h"
 
-    std::vector<std::string> tokens;
+int parse_query(std::string query) {
 
-    char *token = std::strtok(query, " ,");
-    while(token != NULL)
+    hsql::SQLParserResult result;
+    hsql::SQLParser::parse(query, &result);
+
+    if(!result.isValid())
     {
-        tokens.push_back(token);
-        token = std::strtok(NULL, " ,");
+        fprintf(stderr, "Given string is not a valid SQL query.\n");
+        fprintf(stderr, "%s (L%d:%d)\n",
+                result.errorMsg(),
+                result.errorLine(),
+                result.errorColumn());
+
+		return 1;
     }
 
-    // for(int i=0; i<tokens.size(); ++i) std::cout << tokens[i] << '\n'; 
+	printf("Parsed successfully!\n");
+	printf("Number of statements: %lu\n\n", result.size());
 
-    return;
+	for(auto i = 0u; i < result.size(); ++i) 
+	{
+		hsql::SelectStatement* sel = (hsql::SelectStatement*) result.getStatement(i);                                         
+		std::cout << sel->fromTable->getName() << std::endl;
+		std::cout << sel->selectDistinct << std::endl;
+		std::cout << sel->selectList->size() << std::endl;
+
+		std::vector<hsql::Expr*>* list = sel->selectList;
+		for(int j=0; j<sel->selectList->size(); ++j) 
+		{
+			std::cout << "SANJANA: " << (*list)[j]->name << std::endl;
+		}
+		hsql::printStatementInfo(result.getStatement(i));
+	}
+    
+    return 0;
 } 

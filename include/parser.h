@@ -1,6 +1,6 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-void parse_query(char*);
+int parse_query(std::string);
 
 #endif
