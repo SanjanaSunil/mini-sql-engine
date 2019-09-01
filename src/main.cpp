@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 
-#include "parser.h"
+#include "process_query.h"
 
 int main(int argc, char *argv[]) {
 
@@ -12,5 +12,5 @@ int main(int argc, char *argv[]) {
     }
 
     std::string query = argv[1];
-    return parse_query(query);
+    return process_query(query);
 }
