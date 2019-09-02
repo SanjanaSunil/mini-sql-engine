@@ -44,15 +44,6 @@ void select(TABLE_MAP& tables_columns, std::vector<std::string>& tables, COLUMN_
 				std::cerr << "Error: Table " << tables[j] << " does not exist.\n";
 				exit(1);
 			}
-			else
-			{
-				if(columns[i].first.first == "" && columns[i].first.second != "*") cnt++;
-				if(cnt > 1)
-				{
-					std::cerr << "Error: " << columns[i].first.second << " exists in more than one table.\n";
-					exit(1);
-				}
-			}
 
 			for(int k = 0; k < (int) tables_columns[tables[j]].size(); ++k)
 			{
@@ -60,6 +51,7 @@ void select(TABLE_MAP& tables_columns, std::vector<std::string>& tables, COLUMN_
 				{
 					if(tables_columns[tables[j]][k] == columns[i].first.second || columns[i].first.second == "*")
 					{
+						if(columns[i].first.second != "*") cnt++;
 						final_tables.push_back(tables[j]);
 						final_columns.push_back(tables_columns[tables[j]][k]);
 						final_aggrs.push_back(columns[i].second);
@@ -67,6 +59,11 @@ void select(TABLE_MAP& tables_columns, std::vector<std::string>& tables, COLUMN_
 					}
 				}
 			}
+		}
+		if(cnt > 1)
+		{
+			std::cerr << "Error: " << columns[i].first.second << " exists in more than one table.\n";
+			exit(1);
 		}
 	}
 
