@@ -58,17 +58,19 @@ void run_query(const hsql::SQLStatement* query) {
 		
 	}
 
-	for(int i=0; i<(int) columns.size(); ++i) std::cout << columns[i].first << std::endl;
+	// Get table names
+	std::vector<std::string> tables;
+	if(sel->fromTable->type == 0) tables.push_back(sel->fromTable->getName());
+	else
+	{
+		for(int i = 0; i < (int) sel->fromTable->list->size(); ++i)
+		{
+			tables.push_back((*sel->fromTable->list)[i]->name);
+		}	
+	}
 
 	// // Check distinct
 	// std::cout << sel->selectDistinct << std::endl;
-
-	// // Table names
-	// std::cout << sel->fromTable->list->size() << std::endl;
-	// for(int i = 0; i < sel->fromTable->list->size(); ++i)
-	// {
-	// 	std::cout << (*sel->fromTable->list)[i]->name << std::endl;
-	// }
 
 	return;
 } 
