@@ -23,6 +23,12 @@ void select(TABLE_MAP& tables_columns, std::vector<std::string>& tables, std::ve
 	{
 		for(int j = 0; j < (int) tables.size(); ++j)
 		{
+			if(tables_columns.find(tables[j]) == tables_columns.end())
+			{
+				std::cerr << "Error: Table " << tables[j] << " does not exist\n";
+				exit(1);
+			}
+
 			for(int k = 0; k < (int) tables_columns[tables[j]].size(); ++k)
 			{
 				if(tables[j] == columns[i].first.first || columns[i].first.first == "")
@@ -145,6 +151,16 @@ void run_query(const hsql::SQLStatement* query, TABLE_MAP& tables_columns) {
 		}	
 	}
 
+	// Where clause
+	// if(sel->whereClause)
+	// {
+	// 	std::cout << sel->whereClause->expr->name << std::endl;
+	// 	std::cout << sel->whereClause->expr2->ival << std::endl;
+	// 	std::cout << sel->whereClause->opType << std::endl; 
+	// }
+	
+	//-------------
+
 	select(tables_columns, tables, columns);
 	// // Check distinct
 	// std::cout << sel->selectDistinct << std::endl;
@@ -172,8 +188,8 @@ int process_query(std::string query, TABLE_MAP tables_columns) {
 
 	for(auto i = 0u; i < result.size(); ++i) 
 	{
-		run_query(result.getStatement(i), tables_columns);
 		// hsql::printStatementInfo(result.getStatement(i));
+		run_query(result.getStatement(i), tables_columns);
 	}
     
     return 0;
