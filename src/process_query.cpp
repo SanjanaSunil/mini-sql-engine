@@ -18,7 +18,7 @@ void run_query(const hsql::SQLStatement* query) {
 	
 	// Get column names
 	std::vector<std::pair<std::string, enum aggregate_functions>> columns;
-	for(int i = 0; i < sel->selectList->size(); ++i)
+	for(int i = 0; i < (int) sel->selectList->size(); ++i)
 	{
 		if((*sel->selectList)[i]->type == 7)
 		{
