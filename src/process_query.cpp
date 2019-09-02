@@ -17,8 +17,21 @@ typedef std::vector<std::pair<std::pair<std::string, std::string>, enum aggregat
 
 void select(TABLE_MAP& tables_columns, std::vector<std::string>& tables, COLUMN_MAP& columns) {
 
+	for(int i = 0; i < (int) tables.size(); ++i)
+	{
+		for(int j = 0; j < (int) tables.size(); ++j)
+		{
+			if(i != j && tables[i] == tables[j])
+			{
+				std::cerr << "Error: Not unique table: " << tables[i] << ".\n";
+				exit(1);
+			}
+		}
+	}
+
 	std::vector<std::string> final_tables;
 	std::vector<std::string> final_columns;
+	std::vector<enum aggregate_functions> final_aggrs;
 	std::vector<std::vector<double>> final_values;
 
 	for(int i = 0; i < (int) columns.size(); ++i)
@@ -33,7 +46,7 @@ void select(TABLE_MAP& tables_columns, std::vector<std::string>& tables, COLUMN_
 			}
 			else
 			{
-				if(columns[i].first.first == "") cnt++;
+				if(columns[i].first.first == "" && columns[i].first.second != "*") cnt++;
 				if(cnt > 1)
 				{
 					std::cerr << "Error: " << columns[i].first.second << " exists in more than one table.\n";
@@ -49,28 +62,8 @@ void select(TABLE_MAP& tables_columns, std::vector<std::string>& tables, COLUMN_
 					{
 						final_tables.push_back(tables[j]);
 						final_columns.push_back(tables_columns[tables[j]][k]);
-
-						std::vector<double> col_values = read_table_column(tables[j], k);
-						if(columns[i].second == Sum || columns[i].second == Average)
-						{
-							double total = 0;
-							for(std::vector<double>::iterator it = col_values.begin(); it != col_values.end(); ++it) total += *it;
-							
-							if(columns[i].second == Sum) final_values.push_back({total});
-							else final_values.push_back({total / ((double) col_values.size())});
-						}
-						else if(columns[i].second == Max)
-						{
-							final_values.push_back({*max_element(col_values.begin(), col_values.end())});
-						}
-						else if(columns[i].second == Min)
-						{
-							final_values.push_back({*min_element(col_values.begin(), col_values.end())});
-						}
-						else
-						{
-							final_values.push_back(col_values);
-						}		
+						final_aggrs.push_back(columns[i].second);
+						final_values.push_back(read_table_column(tables[j], k));		
 					}
 				}
 			}
@@ -79,12 +72,50 @@ void select(TABLE_MAP& tables_columns, std::vector<std::string>& tables, COLUMN_
 
 	for(int i = 0; i < (int) final_tables.size(); ++i) 
 	{
-		std::cout << final_tables[i] << "." << final_columns[i] << " : ";
+		std::cout << final_aggrs[i] << " of " << final_tables[i] << "." << final_columns[i] << " : ";
 		for(int j = 0; j < (int) final_values[i].size(); ++j) std::cout << final_values[i][j] << " ";
 		std::cout << std::endl;
 	}
 }
 
+//***********************************************
+void checkWhere(hsql::Expr*);
+void printWhere(hsql::Expr* expr) {
+	if(expr == NULL)
+	{
+		std::cerr << "NULL 2\n";
+		return;
+	}
+	switch(expr->type) {
+		case hsql::kExprOperator:
+			checkWhere(expr);
+			break;
+		case hsql::kExprLiteralInt:
+			std::cout << expr->ival << std::endl;
+			break;
+		case hsql::kExprColumnRef:
+			if(expr->table) std::cout << expr->table << " ";
+			std::cout << expr->name << std::endl;
+			break;
+		default:
+			std::cerr << "UNKNOWN " << expr->type << '\n';
+	}
+}
+void checkWhere(hsql::Expr* expr) {
+	if(expr == NULL)
+	{
+		std::cerr << "NULL1\n";
+		return;
+	}
+	std::cout << expr->opType << std::endl;
+	printWhere(expr->expr);
+	if (expr->expr2 != nullptr) {
+        printWhere(expr->expr2);
+    } else if (expr->exprList != nullptr) {
+        for (hsql::Expr* e : *expr->exprList) printWhere(e);
+    }
+}
+//***********************************************
 
 void run_query(const hsql::SQLStatement* query, TABLE_MAP& tables_columns) {
 	
@@ -164,8 +195,10 @@ void run_query(const hsql::SQLStatement* query, TABLE_MAP& tables_columns) {
 	}
 
 	// Where clause
+	checkWhere(sel->whereClause);
 	// if(sel->whereClause)
 	// {
+
 	// 	std::cout << sel->whereClause->expr->name << std::endl;
 	// 	std::cout << sel->whereClause->expr2->ival << std::endl;
 	// 	std::cout << sel->whereClause->opType << std::endl; 
