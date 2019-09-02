@@ -13,11 +13,11 @@ typedef std::unordered_map<std::string, std::vector<std::string>> TABLE_MAP;
 enum aggregate_functions{None, Sum, Average, Max, Min};
 
 
-void select(TABLE_MAP tables_columns, std::vector<std::string>& tables, std::vector<std::pair<std::string, enum aggregate_functions>>& columns) {
+void select(TABLE_MAP& tables_columns, std::vector<std::string>& tables, std::vector<std::pair<std::string, enum aggregate_functions>>& columns) {
 
 	std::vector<std::string> final_tables;
 	std::vector<std::string> final_columns;
-	std::vector<std::vector<int>> final_values;
+	std::vector<std::vector<long long int>> final_values;
 
 	for(int i = 0; i < (int) columns.size(); ++i)
 	{
@@ -29,7 +29,29 @@ void select(TABLE_MAP tables_columns, std::vector<std::string>& tables, std::vec
 				{
 					final_tables.push_back(tables[j]);
 					final_columns.push_back(tables_columns[tables[j]][k]);
-					final_values.push_back(read_table_column(tables[j], k));
+
+					std::vector<long long int> col_values = read_table_column(tables[j], k);
+					if(columns[i].second == Sum || columns[i].second == Average)
+					{
+						long long int total = 0;
+						for(std::vector<long long int>::iterator it = col_values.begin(); it != col_values.end(); ++it) total += *it;
+						
+						if(columns[i].second == Sum) final_values.push_back({total});
+						else final_values.push_back({total / ((long long int) col_values.size())});
+					}
+					else if(columns[i].second == Max)
+					{
+						final_values.push_back({*max_element(col_values.begin(), col_values.end())});
+					}
+					else if(columns[i].second == Min)
+					{
+						final_values.push_back({*min_element(col_values.begin(), col_values.end())});
+					}
+					else
+					{
+						final_values.push_back(col_values);
+					}
+					
 				}
 			}
 		}
@@ -44,7 +66,7 @@ void select(TABLE_MAP tables_columns, std::vector<std::string>& tables, std::vec
 }
 
 
-void run_query(const hsql::SQLStatement* query, TABLE_MAP tables_columns) {
+void run_query(const hsql::SQLStatement* query, TABLE_MAP& tables_columns) {
 	
 	hsql::SelectStatement* sel = (hsql::SelectStatement*) query;
 	

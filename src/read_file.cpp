@@ -44,7 +44,7 @@ TABLE_MAP read_metadata(std::string metadata_file_path) {
 }
 
 
-std::vector<int> read_table_column(std::string table_name, int column_no) {
+std::vector<long long int> read_table_column(std::string table_name, int column_no) {
 
     std::ifstream fin ("files/" + table_name + ".csv");
 
@@ -54,7 +54,7 @@ std::vector<int> read_table_column(std::string table_name, int column_no) {
         exit(1);
     }
 
-    std::vector<int> column_values;
+    std::vector<long long int> column_values;
     std::string line, word;
 
     while(fin >> line)
