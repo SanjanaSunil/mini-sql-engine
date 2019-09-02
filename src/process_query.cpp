@@ -17,7 +17,7 @@ void select(TABLE_MAP& tables_columns, std::vector<std::string>& tables, std::ve
 
 	std::vector<std::string> final_tables;
 	std::vector<std::string> final_columns;
-	std::vector<std::vector<long long int>> final_values;
+	std::vector<std::vector<double>> final_values;
 
 	for(int i = 0; i < (int) columns.size(); ++i)
 	{
@@ -30,14 +30,14 @@ void select(TABLE_MAP& tables_columns, std::vector<std::string>& tables, std::ve
 					final_tables.push_back(tables[j]);
 					final_columns.push_back(tables_columns[tables[j]][k]);
 
-					std::vector<long long int> col_values = read_table_column(tables[j], k);
+					std::vector<double> col_values = read_table_column(tables[j], k);
 					if(columns[i].second == Sum || columns[i].second == Average)
 					{
-						long long int total = 0;
-						for(std::vector<long long int>::iterator it = col_values.begin(); it != col_values.end(); ++it) total += *it;
+						double total = 0;
+						for(std::vector<double>::iterator it = col_values.begin(); it != col_values.end(); ++it) total += *it;
 						
 						if(columns[i].second == Sum) final_values.push_back({total});
-						else final_values.push_back({total / ((long long int) col_values.size())});
+						else final_values.push_back({total / ((double) col_values.size())});
 					}
 					else if(columns[i].second == Max)
 					{
