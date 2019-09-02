@@ -1,16 +1,64 @@
 #include <iostream>
+#include <utility>
 #include <vector>
 #include <string>
+#include <algorithm>
 #include <unordered_map>
 
 #include "SQLParser.h"
 #include "util/sqlhelper.h"
 
 typedef std::unordered_map<std::string, std::vector<std::string>> TABLE_MAP;
+enum aggregate_functions{None, Sum, Average, Max, Min};
+
 
 void run_query(const hsql::SQLStatement* query) {
 	
 	hsql::SelectStatement* sel = (hsql::SelectStatement*) query;
+	
+	// Get column names
+	std::vector<std::pair<std::string, enum aggregate_functions>> columns;
+	for(int i = 0; i < sel->selectList->size(); ++i)
+	{
+		if((*sel->selectList)[i]->type == 7)
+		{
+			if((*sel->selectList)[i]->exprList->size() != 1 || (*(*sel->selectList)[i]->exprList)[0]->type != 6)
+			{
+				fprintf(stderr, "Error: Cannot apply aggregation function.\n");
+				exit(1);
+			}
+			
+			std::string aggr_funct = (*sel->selectList)[i]->getName();
+			std::transform(aggr_funct.begin(), aggr_funct.end(), aggr_funct.begin(), ::toupper);
+			std::string column = (*(*sel->selectList)[i]->exprList)[0]->getName();
+
+			if(aggr_funct == "SUM") columns.push_back({column, Sum});
+			else if(aggr_funct == "AVERAGE") columns.push_back({column, Average});
+			else if(aggr_funct == "MAX") columns.push_back({column, Max});
+			else if(aggr_funct == "MIN") columns.push_back({column, Min});
+			else
+			{
+				fprintf(stderr, "Error: Unknown function.\n");
+				exit(1);
+			}
+		}
+		else if((*sel->selectList)[i]->type == 4)
+		{
+			columns.push_back({"*", None});
+		}
+		else if((*sel->selectList)[i]->type == 6)
+		{
+			columns.push_back({(*sel->selectList)[i]->getName(), None});
+		}
+		else
+		{
+			fprintf(stderr, "Error: Invalud SQL query.\n");
+			exit(1);
+		}
+		
+	}
+
+	for(int i=0; i<(int) columns.size(); ++i) std::cout << columns[i].first << std::endl;
 
 	// // Check distinct
 	// std::cout << sel->selectDistinct << std::endl;
@@ -20,21 +68,6 @@ void run_query(const hsql::SQLStatement* query) {
 	// for(int i = 0; i < sel->fromTable->list->size(); ++i)
 	// {
 	// 	std::cout << (*sel->fromTable->list)[i]->name << std::endl;
-	// }
-
-	// Get Table names and aggregate functions
-	// std::cout << sel->selectList->size() << std::endl;
-	// for(int j=0; j<sel->selectList->size(); ++j) 
-	// {
-	// 	printf("Type: %d\n", (*sel->selectList)[j]->type);
-
-	// 	if((*sel->selectList)[j]->type == 4) printf("Select all\n");
-	// 	else
-	// 	{
-	// 		printf("Name: %s\n", (*sel->selectList)[j]->getName());
-	// 		if((*sel->selectList)[j]->type == 7)
-	// 			printf("Column: %s\n", (*(*sel->selectList)[j]->exprList)[0]->getName());
-	// 	}
 	// }
 
 	return;
