@@ -25,33 +25,35 @@ void select(TABLE_MAP& tables_columns, std::vector<std::string>& tables, std::ve
 		{
 			for(int k = 0; k < (int) tables_columns[tables[j]].size(); ++k)
 			{
-				if(tables_columns[tables[j]][k] == columns[i].first.second || columns[i].first.second == "*")
+				if(tables[j] == columns[i].first.first || columns[i].first.first == "")
 				{
-					final_tables.push_back(tables[j]);
-					final_columns.push_back(tables_columns[tables[j]][k]);
+					if(tables_columns[tables[j]][k] == columns[i].first.second || columns[i].first.second == "*")
+					{
+						final_tables.push_back(tables[j]);
+						final_columns.push_back(tables_columns[tables[j]][k]);
 
-					std::vector<double> col_values = read_table_column(tables[j], k);
-					if(columns[i].second == Sum || columns[i].second == Average)
-					{
-						double total = 0;
-						for(std::vector<double>::iterator it = col_values.begin(); it != col_values.end(); ++it) total += *it;
-						
-						if(columns[i].second == Sum) final_values.push_back({total});
-						else final_values.push_back({total / ((double) col_values.size())});
+						std::vector<double> col_values = read_table_column(tables[j], k);
+						if(columns[i].second == Sum || columns[i].second == Average)
+						{
+							double total = 0;
+							for(std::vector<double>::iterator it = col_values.begin(); it != col_values.end(); ++it) total += *it;
+							
+							if(columns[i].second == Sum) final_values.push_back({total});
+							else final_values.push_back({total / ((double) col_values.size())});
+						}
+						else if(columns[i].second == Max)
+						{
+							final_values.push_back({*max_element(col_values.begin(), col_values.end())});
+						}
+						else if(columns[i].second == Min)
+						{
+							final_values.push_back({*min_element(col_values.begin(), col_values.end())});
+						}
+						else
+						{
+							final_values.push_back(col_values);
+						}		
 					}
-					else if(columns[i].second == Max)
-					{
-						final_values.push_back({*max_element(col_values.begin(), col_values.end())});
-					}
-					else if(columns[i].second == Min)
-					{
-						final_values.push_back({*min_element(col_values.begin(), col_values.end())});
-					}
-					else
-					{
-						final_values.push_back(col_values);
-					}
-					
 				}
 			}
 		}
