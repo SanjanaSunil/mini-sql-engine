@@ -13,7 +13,7 @@ typedef std::unordered_map<std::string, std::vector<std::string>> TABLE_MAP;
 enum aggregate_functions{None, Sum, Average, Max, Min};
 
 
-void select(TABLE_MAP& tables_columns, std::vector<std::string>& tables, std::vector<std::pair<std::string, enum aggregate_functions>>& columns) {
+void select(TABLE_MAP& tables_columns, std::vector<std::string>& tables, std::vector<std::pair<std::pair<std::string, std::string>, enum aggregate_functions>>& columns) {
 
 	std::vector<std::string> final_tables;
 	std::vector<std::string> final_columns;
@@ -25,7 +25,7 @@ void select(TABLE_MAP& tables_columns, std::vector<std::string>& tables, std::ve
 		{
 			for(int k = 0; k < (int) tables_columns[tables[j]].size(); ++k)
 			{
-				if(tables_columns[tables[j]][k] == columns[i].first || columns[i].first == "*")
+				if(tables_columns[tables[j]][k] == columns[i].first.second || columns[i].first.second == "*")
 				{
 					final_tables.push_back(tables[j]);
 					final_columns.push_back(tables_columns[tables[j]][k]);
@@ -71,7 +71,7 @@ void run_query(const hsql::SQLStatement* query, TABLE_MAP& tables_columns) {
 	hsql::SelectStatement* sel = (hsql::SelectStatement*) query;
 	
 	// Get column names
-	std::vector<std::pair<std::string, enum aggregate_functions>> columns;
+	std::vector<std::pair<std::pair<std::string, std::string>, enum aggregate_functions>> columns;
 	for(int i = 0; i < (int) sel->selectList->size(); ++i)
 	{
 		if((*sel->selectList)[i]->type == 7)
@@ -84,12 +84,18 @@ void run_query(const hsql::SQLStatement* query, TABLE_MAP& tables_columns) {
 			
 			std::string aggr_funct = (*sel->selectList)[i]->getName();
 			std::transform(aggr_funct.begin(), aggr_funct.end(), aggr_funct.begin(), ::toupper);
+
+			std::string col_table_name = "";
+			if((*(*sel->selectList)[i]->exprList)[0]->table)
+			{	
+				col_table_name = (*(*sel->selectList)[i]->exprList)[0]->table;
+			}
 			std::string column = (*(*sel->selectList)[i]->exprList)[0]->getName();
 
-			if(aggr_funct == "SUM") columns.push_back({column, Sum});
-			else if(aggr_funct == "AVERAGE") columns.push_back({column, Average});
-			else if(aggr_funct == "MAX") columns.push_back({column, Max});
-			else if(aggr_funct == "MIN") columns.push_back({column, Min});
+			if(aggr_funct == "SUM") columns.push_back({{col_table_name, column}, Sum});
+			else if(aggr_funct == "AVERAGE") columns.push_back({{col_table_name, column}, Average});
+			else if(aggr_funct == "MAX") columns.push_back({{col_table_name, column}, Max});
+			else if(aggr_funct == "MIN") columns.push_back({{col_table_name, column}, Min});
 			else
 			{
 				fprintf(stderr, "Error: Unknown function.\n");
@@ -98,19 +104,27 @@ void run_query(const hsql::SQLStatement* query, TABLE_MAP& tables_columns) {
 		}
 		else if((*sel->selectList)[i]->type == 4)
 		{
-			columns.push_back({"*", None});
+			std::string col_table_name = "";
+			if((*sel->selectList)[i]->table)
+			{	
+				col_table_name = (*sel->selectList)[i]->table;
+			}
+			columns.push_back({{col_table_name, "*"}, None});
 		}
 		else if((*sel->selectList)[i]->type == 6)
 		{
-			// if((*sel->selectList)[i]->table) std::cout << (*sel->selectList)[i]->table << std::endl;
-			columns.push_back({(*sel->selectList)[i]->getName(), None});
+			std::string col_table_name = "";
+			if((*sel->selectList)[i]->table)
+			{	
+				col_table_name = (*sel->selectList)[i]->table;
+			}
+			columns.push_back({{col_table_name, (*sel->selectList)[i]->getName()}, None});
 		}
 		else
 		{
 			fprintf(stderr, "Error: Invalid SQL query.\n");
 			exit(1);
 		}
-		
 	}
 
 	// Get table names
