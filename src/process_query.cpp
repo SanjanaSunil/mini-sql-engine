@@ -9,11 +9,13 @@
 #include "util/sqlhelper.h"
 #include "read_file.h"
 
-typedef std::unordered_map<std::string, std::vector<std::string>> TABLE_MAP;
 enum aggregate_functions{None, Sum, Average, Max, Min};
 
+typedef std::unordered_map<std::string, std::vector<std::string>> TABLE_MAP;
+typedef std::vector<std::pair<std::pair<std::string, std::string>, enum aggregate_functions>> COLUMN_MAP;
 
-void select(TABLE_MAP& tables_columns, std::vector<std::string>& tables, std::vector<std::pair<std::pair<std::string, std::string>, enum aggregate_functions>>& columns) {
+
+void select(TABLE_MAP& tables_columns, std::vector<std::string>& tables, COLUMN_MAP& columns) {
 
 	std::vector<std::string> final_tables;
 	std::vector<std::string> final_columns;
@@ -21,12 +23,22 @@ void select(TABLE_MAP& tables_columns, std::vector<std::string>& tables, std::ve
 
 	for(int i = 0; i < (int) columns.size(); ++i)
 	{
+		int cnt = 0;
 		for(int j = 0; j < (int) tables.size(); ++j)
 		{
 			if(tables_columns.find(tables[j]) == tables_columns.end())
 			{
-				std::cerr << "Error: Table " << tables[j] << " does not exist\n";
+				std::cerr << "Error: Table " << tables[j] << " does not exist.\n";
 				exit(1);
+			}
+			else
+			{
+				if(columns[i].first.first == "") cnt++;
+				if(cnt > 1)
+				{
+					std::cerr << "Error: " << columns[i].first.second << " exists in more than one table.\n";
+					exit(1);
+				}
 			}
 
 			for(int k = 0; k < (int) tables_columns[tables[j]].size(); ++k)
@@ -79,7 +91,7 @@ void run_query(const hsql::SQLStatement* query, TABLE_MAP& tables_columns) {
 	hsql::SelectStatement* sel = (hsql::SelectStatement*) query;
 	
 	// Get column names
-	std::vector<std::pair<std::pair<std::string, std::string>, enum aggregate_functions>> columns;
+	COLUMN_MAP columns;
 	for(int i = 0; i < (int) sel->selectList->size(); ++i)
 	{
 		if((*sel->selectList)[i]->type == 7)
