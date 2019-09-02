@@ -131,6 +131,11 @@ void run_query(const hsql::SQLStatement* query, TABLE_MAP& tables_columns) {
 
 	// Get table names
 	std::vector<std::string> tables;
+	if(!sel->fromTable) 
+	{
+		fprintf(stderr, "Error: No tables used.\n");
+		exit(1);
+	}
 	if(sel->fromTable->type == 0) tables.push_back(sel->fromTable->getName());
 	else
 	{
