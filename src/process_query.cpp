@@ -7,12 +7,33 @@
 
 #include "SQLParser.h"
 #include "util/sqlhelper.h"
+#include "read_file.h"
 
 typedef std::unordered_map<std::string, std::vector<std::string>> TABLE_MAP;
 enum aggregate_functions{None, Sum, Average, Max, Min};
 
 
-void run_query(const hsql::SQLStatement* query) {
+void select(TABLE_MAP tables_columns, std::vector<std::string>& tables, std::vector<std::pair<std::string, enum aggregate_functions>>& columns) {
+
+	for(int i = 0; i < (int) columns.size(); ++i)
+	{
+		for(int j = 0; j < (int) tables.size(); ++j)
+		{
+			for(int k = 0; k < (int) tables_columns[tables[j]].size(); ++k)
+			{
+				if(tables_columns[tables[j]][k] == columns[i].first)
+				{
+					std::vector<int> column_values = read_table_column(tables[j], k);
+					for(int x = 0; x < (int) column_values.size(); ++x) std::cout << column_values[x] << " ";
+					std::cout << std::endl;
+				}
+			}
+		}
+	}
+}
+
+
+void run_query(const hsql::SQLStatement* query, TABLE_MAP tables_columns) {
 	
 	hsql::SelectStatement* sel = (hsql::SelectStatement*) query;
 	
@@ -69,13 +90,14 @@ void run_query(const hsql::SQLStatement* query) {
 		}	
 	}
 
+	select(tables_columns, tables, columns);
 	// // Check distinct
 	// std::cout << sel->selectDistinct << std::endl;
 
 	return;
 } 
 
-int process_query(std::string query, TABLE_MAP tables) {
+int process_query(std::string query, TABLE_MAP tables_columns) {
 
     hsql::SQLParserResult result;
     hsql::SQLParser::parse(query, &result);
@@ -95,7 +117,7 @@ int process_query(std::string query, TABLE_MAP tables) {
 
 	for(auto i = 0u; i < result.size(); ++i) 
 	{
-		run_query(result.getStatement(i));
+		run_query(result.getStatement(i), tables_columns);
 		// hsql::printStatementInfo(result.getStatement(i));
 	}
     
