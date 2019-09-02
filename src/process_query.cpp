@@ -36,7 +36,14 @@ void select(TABLE_MAP& tables_columns, std::vector<std::string>& tables, COLUMN_
 
 	for(int i = 0; i < (int) columns.size(); ++i)
 	{
+		if(columns[i].first.first != "" && tables_columns.find(columns[i].first.first) == tables_columns.end())
+		{
+			std::cerr << "Error: Table " << columns[i].first.first << " does not exist.\n";
+			exit(1);
+		}
+
 		int cnt = 0;
+		bool column_exists = false;
 		for(int j = 0; j < (int) tables.size(); ++j)
 		{
 			if(tables_columns.find(tables[j]) == tables_columns.end())
@@ -51,6 +58,7 @@ void select(TABLE_MAP& tables_columns, std::vector<std::string>& tables, COLUMN_
 				{
 					if(tables_columns[tables[j]][k] == columns[i].first.second || columns[i].first.second == "*")
 					{
+						column_exists = true;
 						if(columns[i].first.second != "*") cnt++;
 						final_tables.push_back(tables[j]);
 						final_columns.push_back(tables_columns[tables[j]][k]);
@@ -63,6 +71,13 @@ void select(TABLE_MAP& tables_columns, std::vector<std::string>& tables, COLUMN_
 		if(cnt > 1)
 		{
 			std::cerr << "Error: " << columns[i].first.second << " exists in more than one table.\n";
+			exit(1);
+		}
+		if(!column_exists)
+		{
+			std::cerr << "Error: " << columns[i].first.first;
+			if(columns[i].first.first != "") std::cerr << ".";
+			std::cerr << columns[i].first.second << " does not exist.\n";
 			exit(1);
 		}
 	}
