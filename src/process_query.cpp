@@ -15,20 +15,31 @@ enum aggregate_functions{None, Sum, Average, Max, Min};
 
 void select(TABLE_MAP tables_columns, std::vector<std::string>& tables, std::vector<std::pair<std::string, enum aggregate_functions>>& columns) {
 
+	std::vector<std::string> final_tables;
+	std::vector<std::string> final_columns;
+	std::vector<std::vector<int>> final_values;
+
 	for(int i = 0; i < (int) columns.size(); ++i)
 	{
 		for(int j = 0; j < (int) tables.size(); ++j)
 		{
 			for(int k = 0; k < (int) tables_columns[tables[j]].size(); ++k)
 			{
-				if(tables_columns[tables[j]][k] == columns[i].first)
+				if(tables_columns[tables[j]][k] == columns[i].first || columns[i].first == "*")
 				{
-					std::vector<int> column_values = read_table_column(tables[j], k);
-					for(int x = 0; x < (int) column_values.size(); ++x) std::cout << column_values[x] << " ";
-					std::cout << std::endl;
+					final_tables.push_back(tables[j]);
+					final_columns.push_back(tables_columns[tables[j]][k]);
+					final_values.push_back(read_table_column(tables[j], k));
 				}
 			}
 		}
+	}
+
+	for(int i = 0; i < (int) final_tables.size(); ++i) 
+	{
+		std::cout << final_tables[i] << "." << final_columns[i] << " : ";
+		for(int j = 0; j < (int) final_values[i].size(); ++j) std::cout << final_values[i][j] << " ";
+		std::cout << std::endl;
 	}
 }
 
