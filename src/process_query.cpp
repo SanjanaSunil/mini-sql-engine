@@ -102,11 +102,12 @@ void run_query(const hsql::SQLStatement* query, TABLE_MAP& tables_columns) {
 		}
 		else if((*sel->selectList)[i]->type == 6)
 		{
+			// if((*sel->selectList)[i]->table) std::cout << (*sel->selectList)[i]->table << std::endl;
 			columns.push_back({(*sel->selectList)[i]->getName(), None});
 		}
 		else
 		{
-			fprintf(stderr, "Error: Invalud SQL query.\n");
+			fprintf(stderr, "Error: Invalid SQL query.\n");
 			exit(1);
 		}
 		
