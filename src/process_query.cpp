@@ -8,6 +8,7 @@
 #include "SQLParser.h"
 #include "util/sqlhelper.h"
 #include "read_file.h"
+#include "helpers.h"
 
 enum aggregate_functions{None, Sum, Average, Max, Min};
 
@@ -86,6 +87,20 @@ void select(TABLE_MAP& tables_columns, std::vector<std::string>& tables, COLUMN_
 	{
 		std::cout << final_aggrs[i] << " of " << final_tables[i] << "." << final_columns[i] << " : ";
 		for(int j = 0; j < (int) final_values[i].size(); ++j) std::cout << final_values[i][j] << " ";
+		std::cout << std::endl;
+	}
+
+	std::vector<std::vector<double>> joined_tables = cartesian_product(final_tables, final_values);
+
+	std::cout << "===========================\n";
+	for(int i = 0; i < (int) final_tables.size(); ++i) 
+	{
+		std::cout << final_aggrs[i] << " of " << final_tables[i] << "." << final_columns[i] << "\t";
+	}
+	std::cout << std::endl;
+	for(int i = 0; i < (int) joined_tables.size(); ++i) 
+	{
+		for(int j = 0; j < (int) joined_tables[i].size(); ++j) std::cout << joined_tables[i][j] << " ";
 		std::cout << std::endl;
 	}
 }
@@ -207,14 +222,19 @@ void run_query(const hsql::SQLStatement* query, TABLE_MAP& tables_columns) {
 	}
 
 	// Where clause
-	checkWhere(sel->whereClause);
-	// if(sel->whereClause)
-	// {
+	// checkWhere(sel->whereClause);
+	if(sel->whereClause)
+	{
+		// std::cout << sel->whereClause->opType << std::endl;
 
-	// 	std::cout << sel->whereClause->expr->name << std::endl;
-	// 	std::cout << sel->whereClause->expr2->ival << std::endl;
-	// 	std::cout << sel->whereClause->opType << std::endl; 
-	// }
+		// std::cout << sel->whereClause->expr->opType << std::endl;
+		// std::cout << sel->whereClause->expr->expr->name << std::endl;
+		// std::cout << sel->whereClause->expr->expr2->ival << std::endl;
+
+		// std::cout << sel->whereClause->expr2->opType << std::endl;  
+		// std::cout << sel->whereClause->expr2->expr->opType << std::endl;
+		// std::cout << sel->whereClause->expr2->expr2->ival << std::endl;
+	}
 	
 	//-------------
 
