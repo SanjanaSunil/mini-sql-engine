@@ -11,10 +11,12 @@
 #include "helpers.h"
 
 
-void where(hsql::Expr* whereClause, std::vector<std::vector<double>>& joined_tables) {
+std::vector<std::vector<double>> where(hsql::Expr* whereClause, std::vector<std::vector<double>> joined_tables, std::vector<std::string>& final_tables, std::vector<std::string>& final_columns) {
 
 	if(whereClause)
 	{
+		bool num_first = false;
+
 		if(whereClause->opType != hsql::kOpAnd && whereClause->opType != hsql::kOpOr)
 		{
 			if(whereClause->opType < hsql::kOpEquals || whereClause->opType > hsql::kOpGreaterEq || whereClause->opType == hsql::kOpNotEquals)
@@ -41,6 +43,7 @@ void where(hsql::Expr* whereClause, std::vector<std::vector<double>>& joined_tab
 			}
 			else if(whereClause->expr2->type == hsql::kExprColumnRef)
 			{
+				num_first = true;
 				if(whereClause->expr2->table) whereTable = whereClause->expr2->table;
 				whereColumn = whereClause->expr2->name;
 
@@ -58,7 +61,38 @@ void where(hsql::Expr* whereClause, std::vector<std::vector<double>>& joined_tab
 				exit(1);
 			}
 
-			std::cout << whereTable << " " << whereColumn << " : " << whereValue << std::endl;
+			std::vector<std::vector<double>> result_table;
+			for(int i = 0; i < (int) joined_tables.size(); ++i)
+			{
+				bool valid = true;
+				for(int j = 0; j < (int) joined_tables[i].size(); ++j)
+				{
+					if(whereTable == final_tables[j] || whereTable == "")
+					{
+						if(whereColumn == final_columns[j])
+						{
+							if(whereClause->opType == hsql::kOpEquals && joined_tables[i][j] != whereValue) valid = false;
+							else if(whereClause->opType == hsql::kOpLess || whereClause->opType == hsql::kOpLessEq)
+							{
+								if(num_first && joined_tables[i][j] < whereValue) valid = false;
+								else if(!num_first && joined_tables[i][j] > whereValue) valid = false;
+
+								if(whereClause->opType == hsql::kOpLess && joined_tables[i][j] == whereValue) valid = false;
+							}
+							else if(whereClause->opType == hsql::kOpGreater || whereClause->opType == hsql::kOpGreaterEq)
+							{
+								if(num_first && joined_tables[i][j] > whereValue) valid = false;
+								else if(!num_first && joined_tables[i][j] < whereValue) valid = false;
+
+								if(whereClause->opType == hsql::kOpGreater && joined_tables[i][j] == whereValue) valid = false;
+							}
+						}
+					}
+				}
+				if(valid) result_table.push_back(joined_tables[i]);
+			}
+			
+			return result_table;
 		}
 		else
 		{
@@ -75,7 +109,7 @@ void where(hsql::Expr* whereClause, std::vector<std::vector<double>>& joined_tab
 		}
 	}
 
-	return;
+	return joined_tables;
 }
 
 void select(TABLE_MAP& tables_columns, std::vector<std::string>& tables, COLUMN_MAP& columns, hsql::Expr* whereClause) {
@@ -145,28 +179,18 @@ void select(TABLE_MAP& tables_columns, std::vector<std::string>& tables, COLUMN_
 		}
 	}
 
-	std::vector<std::vector<double>> joined_tables = cartesian_product(final_tables, final_values);
+	std::vector<std::vector<double>> filtered_tables = where(whereClause, cartesian_product(final_tables, final_values), final_tables, final_columns);
 
-	// for(int i = 0; i < (int) final_tables.size(); ++i) 
-	// {
-	// 	std::cout << final_aggrs[i] << " of " << final_tables[i] << "." << final_columns[i] << " : ";
-	// 	for(int j = 0; j < (int) final_values[i].size(); ++j) std::cout << final_values[i][j] << " ";
-	// 	std::cout << std::endl;
-	// }
-
-	// std::cout << "===========================\n";
 	for(int i = 0; i < (int) final_tables.size(); ++i) 
 	{
 		std::cout << final_aggrs[i] << " of " << final_tables[i] << "." << final_columns[i] << "\t";
 	}
 	std::cout << std::endl;
-	for(int i = 0; i < (int) joined_tables.size(); ++i) 
+	for(int i = 0; i < (int) filtered_tables.size(); ++i) 
 	{
-		for(int j = 0; j < (int) joined_tables[i].size(); ++j) std::cout << joined_tables[i][j] << " ";
+		for(int j = 0; j < (int) filtered_tables[i].size(); ++j) std::cout << filtered_tables[i][j] << " ";
 		std::cout << std::endl;
 	}
-
-	where(whereClause, joined_tables);
-
+	
 	return;
 }
