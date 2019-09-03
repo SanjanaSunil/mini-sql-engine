@@ -124,15 +124,69 @@ std::vector<std::vector<double>> where(hsql::Expr* whereClause, std::vector<std:
 			whereCondition cond1 = get_where_condition(whereClause->expr);
 			whereCondition cond2 = get_where_condition(whereClause->expr2);
 			
-			std::cout << whereClause->opType << std::endl;
+			std::vector<std::vector<double>> result_table;
 
-			std::cout << whereClause->expr->opType << std::endl;
-			std::cout << whereClause->expr->expr->name << std::endl;
-			std::cout << whereClause->expr->expr2->ival << std::endl;
+			for(int i = 0; i < (int) joined_tables.size(); ++i)
+			{
+				int columns_exists = 0;
+				int conds_fulfilled = 2;
+				for(int j = 0; j < (int) joined_tables[i].size(); ++j)
+				{
+					if(cond1.whereTable == final_tables[j] || cond1.whereTable == "")
+					{
+						if(cond1.whereColumn == final_columns[j])
+						{
+							columns_exists++;
+							if(cond1.oper == hsql::kOpEquals && joined_tables[i][j] != cond1.whereValue) conds_fulfilled--;
+							else if(cond1.oper == hsql::kOpLess || cond1.oper == hsql::kOpLessEq)
+							{
+								if(cond1.num_first && joined_tables[i][j] < cond1.whereValue) conds_fulfilled--;
+								else if(!cond1.num_first && joined_tables[i][j] > cond1.whereValue) conds_fulfilled--;
 
-			std::cout << whereClause->expr2->opType << std::endl;  
-			std::cout << whereClause->expr2->expr->opType << std::endl;
-			std::cout << whereClause->expr2->expr2->ival << std::endl;
+								if(cond1.oper == hsql::kOpLess && joined_tables[i][j] == cond1.whereValue) conds_fulfilled--;
+							}
+							else if(cond1.oper == hsql::kOpGreater || cond1.oper == hsql::kOpGreaterEq)
+							{
+								if(cond1.num_first && joined_tables[i][j] > cond1.whereValue) conds_fulfilled--;
+								else if(!cond1.num_first && joined_tables[i][j] < cond1.whereValue) conds_fulfilled--;
+
+								if(cond1.oper == hsql::kOpGreater && joined_tables[i][j] == cond1.whereValue) conds_fulfilled--;
+							}
+						}
+					}
+					if(cond2.whereTable == final_tables[j] || cond2.whereTable == "")
+					{
+						if(cond2.whereColumn == final_columns[j])
+						{
+							columns_exists++;
+							if(cond2.oper == hsql::kOpEquals && joined_tables[i][j] != cond2.whereValue) conds_fulfilled--;
+							else if(cond2.oper == hsql::kOpLess || cond2.oper == hsql::kOpLessEq)
+							{
+								if(cond2.num_first && joined_tables[i][j] < cond2.whereValue) conds_fulfilled--;
+								else if(!cond2.num_first && joined_tables[i][j] > cond2.whereValue) conds_fulfilled--;
+
+								if(cond2.oper == hsql::kOpLess && joined_tables[i][j] == cond2.whereValue) conds_fulfilled--;
+							}
+							else if(cond2.oper == hsql::kOpGreater || cond2.oper == hsql::kOpGreaterEq)
+							{
+								if(cond2.num_first && joined_tables[i][j] > cond2.whereValue) conds_fulfilled--;
+								else if(!cond2.num_first && joined_tables[i][j] < cond2.whereValue) conds_fulfilled--;
+
+								if(cond2.oper == hsql::kOpGreater && joined_tables[i][j] == cond2.whereValue) conds_fulfilled--;
+							}
+						}
+					}
+				}
+				if(columns_exists != 2)
+				{
+					std::cerr << "Error: Column(s) does not exist.\n";
+					exit(1);
+				}
+				if(whereClause->opType == hsql::kOpAnd && conds_fulfilled == 2) result_table.push_back(joined_tables[i]);
+				if(whereClause->opType == hsql::kOpOr && conds_fulfilled >= 1) result_table.push_back(joined_tables[i]);
+			}
+
+			return result_table;
 		}
 	}
 
