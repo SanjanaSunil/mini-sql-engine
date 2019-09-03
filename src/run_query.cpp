@@ -113,7 +113,7 @@ std::vector<std::vector<double>> where(hsql::Expr* whereClause, std::vector<std:
 							}
 						}
 					}
-					if(columns_exists != 2)
+					if(columns_exists < 2)
 					{
 						std::cerr << "Error: Column(s) does not exist.\n";
 						exit(1);
@@ -223,7 +223,7 @@ std::vector<std::vector<double>> where(hsql::Expr* whereClause, std::vector<std:
 						}
 					}
 				}
-				if(columns_exists != 2)
+				if(columns_exists < 2)
 				{
 					std::cerr << "Error: Column(s) does not exist.\n";
 					exit(1);
@@ -259,8 +259,20 @@ void select(TABLE_MAP& tables_columns, std::vector<std::string>& tables, COLUMN_
 	{
 		if(whereClause->opType != hsql::kOpAnd && whereClause->opType != hsql::kOpOr)
 		{
-			whereCondition cond = get_where_condition(whereClause);
-			columns.push_back({{cond.whereTable, cond.whereColumn}, None});
+			if(whereClause->opType == hsql::kOpEquals && whereClause->expr->type == hsql::kExprColumnRef && whereClause->expr2->type == hsql::kExprColumnRef)
+			{
+				std::string table1 = "";
+				std::string table2 = "";
+				if(whereClause->expr->table) table1 = whereClause->expr->table;
+				if(whereClause->expr2->table) table2 = whereClause->expr2->table;
+				columns.push_back({{table1, whereClause->expr->name}, None});
+				columns.push_back({{table2, whereClause->expr2->name}, None});
+			}
+			else
+			{
+				whereCondition cond = get_where_condition(whereClause);
+				columns.push_back({{cond.whereTable, cond.whereColumn}, None});
+			}
 		}
 		else
 		{
