@@ -74,10 +74,56 @@ std::vector<std::vector<double>> where(hsql::Expr* whereClause, std::vector<std:
 	{
 		if(whereClause->opType != hsql::kOpAnd && whereClause->opType != hsql::kOpOr)
 		{
-			whereCondition cond = get_where_condition(whereClause);
-
-			std::vector<std::vector<double>> result_table;
 			bool column_exists = false;
+			std::vector<std::vector<double>> result_table;
+
+			if(whereClause->opType == hsql::kOpEquals && whereClause->expr->type == hsql::kExprColumnRef && whereClause->expr2->type == hsql::kExprColumnRef)
+			{ 
+				for(int i = 0; i < (int) joined_tables.size(); ++i)
+				{
+					int flag = 0;
+					double value = 0;
+					int columns_exists = 0;
+					for(int j = 0; j < (int) joined_tables[i].size(); ++j)
+					{
+						if(whereClause->expr->table == nullptr || whereClause->expr->table == final_tables[j])
+						{
+							if(whereClause->expr->name == final_columns[j])
+							{
+								columns_exists++;
+								if(flag == 0)
+								{
+									value = joined_tables[i][j];
+									flag = 1;
+								}
+								else if(joined_tables[i][j] != value) flag = -1;
+							}
+						}
+						else if(whereClause->expr2->table == nullptr || whereClause->expr2->table == final_tables[j])
+						{
+							if(whereClause->expr2->name == final_columns[j])
+							{
+								columns_exists++;
+								if(flag == 0)
+								{
+									value = joined_tables[i][j];
+									flag = 1;
+								}
+								else if(joined_tables[i][j] != value) flag = -1;
+							}
+						}
+					}
+					if(columns_exists != 2)
+					{
+						std::cerr << "Error: Column(s) does not exist.\n";
+						exit(1);
+					}
+					if(flag != -1) result_table.push_back(joined_tables[i]);
+				}
+				return result_table;
+			}
+
+			whereCondition cond = get_where_condition(whereClause);
 
 			for(int i = 0; i < (int) joined_tables.size(); ++i)
 			{
@@ -207,10 +253,30 @@ void select(TABLE_MAP& tables_columns, std::vector<std::string>& tables, COLUMN_
 		}
 	}
 
+	// Join columns in where condition
+	int non_display_beg = (int) columns.size();
+	if(whereClause)
+	{
+		if(whereClause->opType != hsql::kOpAnd && whereClause->opType != hsql::kOpOr)
+		{
+			whereCondition cond = get_where_condition(whereClause);
+			columns.push_back({{cond.whereTable, cond.whereColumn}, None});
+		}
+		else
+		{
+			whereCondition cond1 = get_where_condition(whereClause->expr);
+			whereCondition cond2 = get_where_condition(whereClause->expr2);
+			columns.push_back({{cond1.whereTable, cond1.whereColumn}, None});
+			columns.push_back({{cond2.whereTable, cond2.whereColumn}, None});
+		}
+	}
+
 	std::vector<std::string> final_tables;
 	std::vector<std::string> final_columns;
 	std::vector<enum aggregate_functions> final_aggrs;
 	std::vector<std::vector<double>> final_values;
+
+	bool flag = false;
 
 	for(int i = 0; i < (int) columns.size(); ++i)
 	{
@@ -236,6 +302,11 @@ void select(TABLE_MAP& tables_columns, std::vector<std::string>& tables, COLUMN_
 				{
 					if(tables_columns[tables[j]][k] == columns[i].first.second || columns[i].first.second == "*")
 					{
+						if(i >= non_display_beg && !flag)
+						{
+							flag = true;
+							non_display_beg = (int) final_columns.size();
+						}
 						column_exists = true;
 						if(columns[i].first.second != "*") cnt++;
 						final_tables.push_back(tables[j]);
@@ -260,16 +331,18 @@ void select(TABLE_MAP& tables_columns, std::vector<std::string>& tables, COLUMN_
 		}
 	}
 
+	if(!flag) non_display_beg = (int) final_columns.size();
+	
 	std::vector<std::vector<double>> filtered_tables = where(whereClause, cartesian_product(final_tables, final_values), final_tables, final_columns);
 
-	for(int i = 0; i < (int) final_tables.size(); ++i) 
+	for(int i = 0; i < non_display_beg; ++i) 
 	{
 		std::cout << final_aggrs[i] << " of " << final_tables[i] << "." << final_columns[i] << "\t";
 	}
 	std::cout << std::endl;
 	for(int i = 0; i < (int) filtered_tables.size(); ++i) 
 	{
-		for(int j = 0; j < (int) filtered_tables[i].size(); ++j) std::cout << filtered_tables[i][j] << " ";
+		for(int j = 0; j < non_display_beg; ++j) std::cout << filtered_tables[i][j] << " ";
 		std::cout << std::endl;
 	}
 	
