@@ -5,7 +5,7 @@
 #include <sstream>
 #include <unordered_map>
 
-typedef std::unordered_map<std::string, std::vector<std::string>> TABLE_MAP;
+#include "read_file.h"
 
 TABLE_MAP read_metadata(std::string metadata_file_path) {
 
