@@ -10,84 +10,109 @@
 #include "read_file.h"
 #include "helpers.h"
 
+struct whereCondition 
+{
+	bool num_first;
+	std::string whereTable;
+	std::string whereColumn;
+	double whereValue;
+	hsql::OperatorType oper;
+};
+
+whereCondition get_where_condition(hsql::Expr* binaryExpr) {
+
+	if(binaryExpr->opType < hsql::kOpEquals || binaryExpr->opType > hsql::kOpGreaterEq || binaryExpr->opType == hsql::kOpNotEquals)
+	{
+		std::cerr << "Error: Operation not supported.\n";
+		exit(1);
+	}
+
+	whereCondition cond;
+	cond.num_first = false;
+	cond.whereTable = "";
+	cond.oper = binaryExpr->opType;
+
+	if(binaryExpr->expr->type == hsql::kExprColumnRef)
+	{
+		if(binaryExpr->expr->table) cond.whereTable = binaryExpr->expr->table;
+		cond.whereColumn = binaryExpr->expr->name;
+
+		if(binaryExpr->expr2->type == hsql::kExprLiteralFloat) cond.whereValue = binaryExpr->expr2->fval;
+		else if(binaryExpr->expr2->type == hsql::kExprLiteralInt) cond.whereValue = binaryExpr->expr2->ival;
+		else
+		{
+			std::cerr << "Operation not supported.\n";
+			exit(1);
+		}	
+	}
+	else if(binaryExpr->expr2->type == hsql::kExprColumnRef)
+	{
+		cond.num_first = true;
+		if(binaryExpr->expr2->table) cond.whereTable = binaryExpr->expr2->table;
+		cond.whereColumn = binaryExpr->expr2->name;
+
+		if(binaryExpr->expr->type == hsql::kExprLiteralFloat) cond.whereValue = binaryExpr->expr->fval;
+		else if(binaryExpr->expr->type == hsql::kExprLiteralInt) cond.whereValue = binaryExpr->expr->ival;
+		else
+		{
+			std::cerr << "Operation not supported.\n";
+			exit(1);
+		}
+	}
+	else
+	{
+		std::cerr << "Operation not supported.\n";
+		exit(1);
+	}
+
+	return cond;
+}
 
 std::vector<std::vector<double>> where(hsql::Expr* whereClause, std::vector<std::vector<double>> joined_tables, std::vector<std::string>& final_tables, std::vector<std::string>& final_columns) {
-
+	
 	if(whereClause)
 	{
-		bool num_first = false;
-
 		if(whereClause->opType != hsql::kOpAnd && whereClause->opType != hsql::kOpOr)
 		{
-			if(whereClause->opType < hsql::kOpEquals || whereClause->opType > hsql::kOpGreaterEq || whereClause->opType == hsql::kOpNotEquals)
-			{
-				std::cerr << "Operation not supported.\n";
-				exit(1);
-			}
-
-			std::string whereTable = "";
-			std::string whereColumn;
-			double whereValue;
-			if(whereClause->expr->type == hsql::kExprColumnRef)
-			{
-				if(whereClause->expr->table) whereTable = whereClause->expr->table;
-				whereColumn = whereClause->expr->name;
-
-				if(whereClause->expr2->type == hsql::kExprLiteralFloat) whereValue = whereClause->expr2->fval;
-				else if(whereClause->expr2->type == hsql::kExprLiteralInt) whereValue = whereClause->expr2->ival;
-				else
-				{
-					std::cerr << "Operation not supported.\n";
-					exit(1);
-				}
-			}
-			else if(whereClause->expr2->type == hsql::kExprColumnRef)
-			{
-				num_first = true;
-				if(whereClause->expr2->table) whereTable = whereClause->expr2->table;
-				whereColumn = whereClause->expr2->name;
-
-				if(whereClause->expr->type == hsql::kExprLiteralFloat) whereValue = whereClause->expr->fval;
-				else if(whereClause->expr->type == hsql::kExprLiteralInt) whereValue = whereClause->expr->ival;
-				else
-				{
-					std::cerr << "Operation not supported.\n";
-					exit(1);
-				}
-			}
-			else
-			{
-				std::cerr << "Operation not supported.\n";
-				exit(1);
-			}
+			whereCondition cond = get_where_condition(whereClause);
 
 			std::vector<std::vector<double>> result_table;
+			bool column_exists = false;
+
 			for(int i = 0; i < (int) joined_tables.size(); ++i)
 			{
 				bool valid = true;
 				for(int j = 0; j < (int) joined_tables[i].size(); ++j)
 				{
-					if(whereTable == final_tables[j] || whereTable == "")
+					if(cond.whereTable == final_tables[j] || cond.whereTable == "")
 					{
-						if(whereColumn == final_columns[j])
+						if(cond.whereColumn == final_columns[j])
 						{
-							if(whereClause->opType == hsql::kOpEquals && joined_tables[i][j] != whereValue) valid = false;
-							else if(whereClause->opType == hsql::kOpLess || whereClause->opType == hsql::kOpLessEq)
+							column_exists = true;
+							if(cond.oper == hsql::kOpEquals && joined_tables[i][j] != cond.whereValue) valid = false;
+							else if(cond.oper == hsql::kOpLess || cond.oper == hsql::kOpLessEq)
 							{
-								if(num_first && joined_tables[i][j] < whereValue) valid = false;
-								else if(!num_first && joined_tables[i][j] > whereValue) valid = false;
+								if(cond.num_first && joined_tables[i][j] < cond.whereValue) valid = false;
+								else if(!cond.num_first && joined_tables[i][j] > cond.whereValue) valid = false;
 
-								if(whereClause->opType == hsql::kOpLess && joined_tables[i][j] == whereValue) valid = false;
+								if(cond.oper == hsql::kOpLess && joined_tables[i][j] == cond.whereValue) valid = false;
 							}
-							else if(whereClause->opType == hsql::kOpGreater || whereClause->opType == hsql::kOpGreaterEq)
+							else if(cond.oper == hsql::kOpGreater || cond.oper == hsql::kOpGreaterEq)
 							{
-								if(num_first && joined_tables[i][j] > whereValue) valid = false;
-								else if(!num_first && joined_tables[i][j] < whereValue) valid = false;
+								if(cond.num_first && joined_tables[i][j] > cond.whereValue) valid = false;
+								else if(!cond.num_first && joined_tables[i][j] < cond.whereValue) valid = false;
 
-								if(whereClause->opType == hsql::kOpGreater && joined_tables[i][j] == whereValue) valid = false;
+								if(cond.oper == hsql::kOpGreater && joined_tables[i][j] == cond.whereValue) valid = false;
 							}
 						}
 					}
+				}
+				if(!column_exists)
+				{
+					std::cerr << "Error: " << cond.whereTable;
+					if(cond.whereTable != "") std::cerr << ".";
+					std::cerr << cond.whereColumn << " does not exist.\n";
+					exit(1);
 				}
 				if(valid) result_table.push_back(joined_tables[i]);
 			}
@@ -96,7 +121,9 @@ std::vector<std::vector<double>> where(hsql::Expr* whereClause, std::vector<std:
 		}
 		else
 		{
-			// Take care of and and or here
+			whereCondition cond1 = get_where_condition(whereClause->expr);
+			whereCondition cond2 = get_where_condition(whereClause->expr2);
+			
 			std::cout << whereClause->opType << std::endl;
 
 			std::cout << whereClause->expr->opType << std::endl;
