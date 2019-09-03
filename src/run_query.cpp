@@ -69,9 +69,7 @@ whereCondition get_where_condition(hsql::Expr* binaryExpr) {
 }
 
 std::vector<std::vector<double>> where(hsql::Expr* whereClause, std::vector<std::vector<double>> joined_tables, 
-									   std::vector<std::string>& final_tables, std::vector<std::string>& final_columns,
-									   std::string& non_display_table1, std::string& non_display_table2,
-									   std::string& non_display_column1, std::string& non_display_column2) {
+									   std::vector<std::string>& final_tables, std::vector<std::string>& final_columns) {
 	
 	if(whereClause)
 	{
@@ -94,9 +92,6 @@ std::vector<std::vector<double>> where(hsql::Expr* whereClause, std::vector<std:
 							if(whereClause->expr->name == final_columns[j])
 							{
 								columns_exists++;
-								non_display_table1 = "";
-								if(whereClause->expr->table) non_display_table1 = whereClause->expr->table;
-								non_display_column1 = whereClause->expr->name;
 								if(flag == 0)
 								{
 									value = joined_tables[i][j];
@@ -110,9 +105,6 @@ std::vector<std::vector<double>> where(hsql::Expr* whereClause, std::vector<std:
 							if(whereClause->expr2->name == final_columns[j])
 							{
 								columns_exists++;
-								non_display_table2 = "";
-								if(whereClause->expr2->table) non_display_table2 = whereClause->expr2->table;
-								non_display_column2 = whereClause->expr->name;
 								if(flag == 0)
 								{
 									value = joined_tables[i][j];
@@ -354,17 +346,7 @@ void select(TABLE_MAP& tables_columns, std::vector<std::string>& tables, COLUMN_
 
 	if(!flag) non_display_beg = (int) final_columns.size();
 
-	std::string non_display_table1, non_display_table2;
-	std::string non_display_column1, non_display_column2;
-
-	std::vector<std::vector<double>> filtered_tables = where(whereClause, 
-															 cartesian_product(final_tables, final_values), 
-															 final_tables, final_columns, 
-															 non_display_table1, non_display_table2,
-															 non_display_column1, non_display_column2);
-
-	// // std::cout << non_display_table1 << "." << non_display_column1 << std::endl;
-	// // std::cout << non_display_table2 << "." << non_display_column2 << std::endl;
+	std::vector<std::vector<double>> filtered_tables = where(whereClause, cartesian_product(final_tables, final_values), final_tables, final_columns);
 
 	for(int i = 0; i < non_display_beg; ++i) 
 	{
