@@ -10,45 +10,6 @@
 #include "read_file.h"
 #include "run_query.h"
 
-//***********************************************
-void checkWhere(hsql::Expr*);
-void printWhere(hsql::Expr* expr) {
-	if(expr == NULL)
-	{
-		std::cerr << "NULL 2\n";
-		return;
-	}
-	switch(expr->type) {
-		case hsql::kExprOperator:
-			checkWhere(expr);
-			break;
-		case hsql::kExprLiteralInt:
-			std::cout << expr->ival << std::endl;
-			break;
-		case hsql::kExprColumnRef:
-			if(expr->table) std::cout << expr->table << " ";
-			std::cout << expr->name << std::endl;
-			break;
-		default:
-			std::cerr << "UNKNOWN " << expr->type << '\n';
-	}
-}
-void checkWhere(hsql::Expr* expr) {
-	if(expr == NULL)
-	{
-		std::cerr << "NULL1\n";
-		return;
-	}
-	std::cout << expr->opType << std::endl;
-	printWhere(expr->expr);
-	if (expr->expr2 != nullptr) {
-        printWhere(expr->expr2);
-    } else if (expr->exprList != nullptr) {
-        for (hsql::Expr* e : *expr->exprList) printWhere(e);
-    }
-}
-//***********************************************
-
 void get_fields(const hsql::SQLStatement* query, TABLE_MAP& tables_columns) {
 	
 	hsql::SelectStatement* sel = (hsql::SelectStatement*) query;
