@@ -379,7 +379,18 @@ void select(TABLE_MAP& tables_columns, std::vector<std::string>& tables, COLUMN_
 
 	for(int i = 0; i < non_display_beg; ++i) 
 	{
-		if(display_column[i]) std::cout << final_aggrs[i] << " of " << final_tables[i] << "." << final_columns[i] << "\t";
+		if(display_column[i]) 
+		{
+			if(final_aggrs[i] == Sum) std::cout << "SUM(";
+			else if(final_aggrs[i] == Average) std::cout << "AVERAGE(";
+			else if(final_aggrs[i] == Max) std::cout << "MAX(";
+			else if(final_aggrs[i] == Min) std::cout << "MIN(";
+
+			std::cout << final_tables[i] << "." << final_columns[i];
+
+			if(final_aggrs[i] != None) std::cout << ")";
+			std::cout << ",";
+		}
 	}
 	std::cout << std::endl;
 	for(int i = 0; i < (int) filtered_tables.size(); ++i) 
