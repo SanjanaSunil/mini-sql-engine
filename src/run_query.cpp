@@ -381,15 +381,15 @@ void select(TABLE_MAP& tables_columns, std::vector<std::string>& tables, COLUMN_
 	{
 		if(display_column[i]) 
 		{
+			if(i != 0) std::cout << ',';
 			if(final_aggrs[i] == Sum) std::cout << "SUM(";
 			else if(final_aggrs[i] == Average) std::cout << "AVERAGE(";
 			else if(final_aggrs[i] == Max) std::cout << "MAX(";
 			else if(final_aggrs[i] == Min) std::cout << "MIN(";
 
-			std::cout << final_tables[i] << "." << final_columns[i];
+			std::cout << final_tables[i] << '.' << final_columns[i];
 
-			if(final_aggrs[i] != None) std::cout << ")";
-			std::cout << ",";
+			if(final_aggrs[i] != None) std::cout << ')';
 		}
 	}
 	std::cout << std::endl;
@@ -408,7 +408,14 @@ void select(TABLE_MAP& tables_columns, std::vector<std::string>& tables, COLUMN_
 	
 	for(int i = 0; i < (int) filtered_tables.size(); ++i) 
 	{
-		for(int j = 0; j < non_display_beg; ++j) if(display_column[j]) std::cout << filtered_tables[i][j] << " ";
+		for(int j = 0; j < non_display_beg; ++j) 
+		{
+			if(display_column[j])
+			{
+				if(j != 0) std::cout << ',';
+				std::cout << filtered_tables[i][j];
+			}
+		}
 		std::cout << std::endl;
 		if((int) final_aggrs.size() > 0 && final_aggrs[0] != None) break;
 	}
