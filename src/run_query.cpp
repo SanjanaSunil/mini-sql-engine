@@ -352,14 +352,24 @@ void select(TABLE_MAP& tables_columns, std::vector<std::string>& tables, COLUMN_
 
 	std::vector<std::vector<double>> filtered_tables = where(whereClause, cartesian_product(final_tables, final_values), final_tables, final_columns);
 
+	bool first_displayed = false;
+	std::vector<bool> display_column(final_tables.size(), true);
 	for(int i = 0; i < non_display_beg; ++i) 
 	{
-		std::cout << final_aggrs[i] << " of " << final_tables[i] << "." << final_columns[i] << "\t";
+		if(final_tables[i] == "" || final_tables[i] == table1 || final_tables[i] == table2 || table1 == "" || table2 == "")
+		{
+			if(final_columns[i] == column1 || final_columns[i] == column2) 
+			{
+				if(first_displayed) display_column[i] = false; 
+				first_displayed = true;
+			}
+		}
+		if(display_column[i]) std::cout << final_aggrs[i] << " of " << final_tables[i] << "." << final_columns[i] << "\t";
 	}
 	std::cout << std::endl;
 	for(int i = 0; i < (int) filtered_tables.size(); ++i) 
 	{
-		for(int j = 0; j < non_display_beg; ++j) std::cout << filtered_tables[i][j] << " ";
+		for(int j = 0; j < non_display_beg; ++j) if(display_column[j]) std::cout << filtered_tables[i][j] << " ";
 		std::cout << std::endl;
 	}
 	
