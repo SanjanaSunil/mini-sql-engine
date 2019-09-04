@@ -364,6 +364,21 @@ void select(TABLE_MAP& tables_columns, std::vector<std::string>& tables, COLUMN_
 				first_displayed = true;
 			}
 		}
+		if(i > 0)
+		{
+			if(final_aggrs[i] == None || final_aggrs[i-1] == None)
+			{
+				if(final_aggrs[i] != final_aggrs[i-1])
+				{
+					std::cerr << "Error: Aggregation function not applied across all tables\n";
+					exit(1);
+				}
+			}
+		}
+	}
+
+	for(int i = 0; i < non_display_beg; ++i) 
+	{
 		if(display_column[i]) std::cout << final_aggrs[i] << " of " << final_tables[i] << "." << final_columns[i] << "\t";
 	}
 	std::cout << std::endl;
