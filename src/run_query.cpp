@@ -255,6 +255,10 @@ void select(TABLE_MAP& tables_columns, std::vector<std::string>& tables, COLUMN_
 	}
 	
 	// Join columns in where condition
+	std::string table1 = "";
+	std::string table2 = "";
+	std::string column1 = "";
+	std::string column2 = "";
 	int non_display_beg = (int) columns.size();
 	if(whereClause)
 	{
@@ -262,12 +266,12 @@ void select(TABLE_MAP& tables_columns, std::vector<std::string>& tables, COLUMN_
 		{
 			if(whereClause->opType == hsql::kOpEquals && whereClause->expr->type == hsql::kExprColumnRef && whereClause->expr2->type == hsql::kExprColumnRef)
 			{
-				std::string table1 = "";
-				std::string table2 = "";
 				if(whereClause->expr->table) table1 = whereClause->expr->table;
 				if(whereClause->expr2->table) table2 = whereClause->expr2->table;
-				columns.push_back({{table1, whereClause->expr->name}, None});
-				columns.push_back({{table2, whereClause->expr2->name}, None});
+				column1 = whereClause->expr->name;
+				column2 = whereClause->expr2->name;
+				columns.push_back({{table1, column1}, None});
+				columns.push_back({{table2, column2}, None});
 			}
 			else
 			{
