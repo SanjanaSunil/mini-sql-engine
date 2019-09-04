@@ -403,7 +403,7 @@ void select(TABLE_MAP& tables_columns, std::vector<std::string>& tables, COLUMN_
 			else if(final_aggrs[j] == Min) filtered_tables[0][j] = std::min(filtered_tables[0][j], filtered_tables[i][j]);
 		}
 	}
-	for(int i = 0; i < non_display_beg; ++i) if(final_aggrs[i] == Average) filtered_tables[0][i] /= filtered_tables.size();
+	for(int i = 0; i < non_display_beg; ++i) if(final_aggrs[i] == Average && filtered_tables.size() > 0) filtered_tables[0][i] /= filtered_tables.size();
 
 	
 	for(int i = 0; i < (int) filtered_tables.size(); ++i) 
