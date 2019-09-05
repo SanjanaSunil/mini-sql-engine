@@ -61,11 +61,12 @@ void process_select(vector<column_data>& joined_columns, hsql::SelectStatement* 
         select_columns.push_back(temp);
     }
 
-    if(select_columns[0].aggr != None)
+
+    for(int i = 1; i <(int) select_columns.size(); ++i)
     {
-        for(int i = 1; i <(int) select_columns.size(); ++i)
+        if(select_columns[i].aggr == None || select_columns[i-1].aggr == None)
         {
-            if(select_columns[i].aggr == None)
+            if(select_columns[i].aggr != select_columns[i-1].aggr)
             {
                 cerr << "Error: Aggregation not uniformly applied.\n";
                 exit(1);
