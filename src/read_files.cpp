@@ -33,7 +33,11 @@ unordered_map<string, vector<string>> read_metadata(string metadata_file_path) {
         } 
         else
         {
-            if(new_file == 1) cur_table = line;
+            if(new_file == 1) 
+            {
+                cur_table = line;
+                tables[cur_table] = {};
+            }
             else tables[cur_table].push_back(line);
             new_file = 0;
         }
