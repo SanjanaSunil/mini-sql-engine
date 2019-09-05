@@ -38,7 +38,7 @@ void print_table(vector<column_data> final_columns, bool distinct) {
             }
             if(duplicate == true) break;
         }
-        if(!duplicate)
+        if(!distinct || !duplicate)
         {
             for(int j = 0; j < (int) final_columns.size(); ++j)
             {
