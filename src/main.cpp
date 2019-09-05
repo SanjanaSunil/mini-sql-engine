@@ -3,17 +3,39 @@
 #include <vector>
 #include <unordered_map>
 
-#include "read_file.h"
-#include "process_query.h"
+#include "SQLParser.h"
+#include "util/sqlhelper.h"
+#include "read_files.h"
+#include "process_from.h"
+
+using namespace std;
 
 int main(int argc, char* argv[]) {
 
     if(argc != 2)
     {
-        std::cout << "Usage: ./a.out \"SQL query\" \n";
+        cout << "Usage: ./a.out \"SQL query\" \n";
         return 1;
     }
 
-    std::string query = argv[1];
-    return process_query(query, read_metadata("files/metadata.txt"));
+    unordered_map<string, vector<string>> tables_columns = read_metadata("files/metadata.txt");
+
+    string queries = argv[1];
+    hsql::SQLParserResult result;
+    hsql::SQLParser::parse(queries, &result);
+
+    if(!result.isValid())
+    {
+        fprintf(stderr, "Given string is not a valid SQL query.\n");
+        fprintf(stderr, "%s (L%d:%d)\n", result.errorMsg(), result.errorLine(), result.errorColumn());
+		exit(1);
+    }
+
+	for(auto i = 0u; i < result.size(); ++i) 
+	{
+		// hsql::printStatementInfo(result.getStatement(i));
+		process_from(result.getStatement(i), tables_columns);
+	}
+
+    return 0;
 }

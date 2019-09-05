@@ -5,22 +5,23 @@
 #include <sstream>
 #include <unordered_map>
 
-#include "read_file.h"
+using namespace std;
 
-TABLE_MAP read_metadata(std::string metadata_file_path) {
+// Mapping of tables to the columns it contains
+unordered_map<string, vector<string>> read_metadata(string metadata_file_path) {
 
-    std::string line;
-    std::ifstream metadata_file (metadata_file_path);
-    TABLE_MAP tables;
-
-    int new_file = 0;
-    std::string cur_table = "";
+    string line;
+    ifstream metadata_file (metadata_file_path);
 
     if(!metadata_file.is_open())
     {
         fprintf(stderr, "Unable to open metadata file\n");
         exit(1);
     }
+
+    int new_file = 0;
+    string cur_table = "";
+    unordered_map<string, vector<string>> tables;
 
     while(metadata_file >> line)
     {
@@ -43,10 +44,10 @@ TABLE_MAP read_metadata(std::string metadata_file_path) {
     return tables;
 }
 
+// Read a specific column in a table
+vector<double> read_table_column(string table_name, int column_no) {
 
-std::vector<double> read_table_column(std::string table_name, int column_no) {
-
-    std::ifstream fin ("files/" + table_name + ".csv");
+    ifstream fin ("files/" + table_name + ".csv");
 
     if(!fin.is_open())
     {
@@ -54,12 +55,12 @@ std::vector<double> read_table_column(std::string table_name, int column_no) {
         exit(1);
     }
 
-    std::vector<double> column_values;
-    std::string line, word;
+    vector<double> column_values;
+    string line, word;
 
     while(fin >> line)
     {
-        std::stringstream s(line);
+        stringstream s(line);
         int col_no = 0;
         while(getline(s, word, ',')) 
         {
