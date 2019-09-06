@@ -28,14 +28,14 @@ int main(int argc, char* argv[]) {
     {
         fprintf(stderr, "Given string is not a valid SQL query.\n");
         fprintf(stderr, "%s (L%d:%d)\n", result.errorMsg(), result.errorLine(), result.errorColumn());
-		exit(1);
+        exit(1);
     }
 
-	for(auto i = 0u; i < result.size(); ++i) 
-	{
-		// hsql::printStatementInfo(result.getStatement(i));
-		process_from(result.getStatement(i), tables_columns);
-	}
+    for(auto i = 0u; i < result.size(); ++i) 
+    {
+        // hsql::printStatementInfo(result.getStatement(i));
+        process_from(result.getStatement(i), tables_columns);
+    }
 
     return 0;
 }
