@@ -69,12 +69,12 @@ whereCondition get_where_condition(hsql::Expr* binaryExpr) {
 
 void process_where(vector<column_data>& joined_columns, hsql::Expr* whereClause) {
 
-    if(whereClause)
-    {
+	if(whereClause)
+	{
 		vector<vector<double>> valid_rows;
 		vector<double> row;
 
-        if(whereClause->opType != hsql::kOpAnd && whereClause->opType != hsql::kOpOr)
+		if(whereClause->opType != hsql::kOpAnd && whereClause->opType != hsql::kOpOr)
 		{
 			// Check for join condition
 			if(whereClause->opType == hsql::kOpEquals && whereClause->expr->type == hsql::kExprColumnRef && whereClause->expr2->type == hsql::kExprColumnRef)
@@ -153,7 +153,7 @@ void process_where(vector<column_data>& joined_columns, hsql::Expr* whereClause)
 			}
 
 			bool column_exists = false;
-            whereCondition cond = get_where_condition(whereClause);
+			whereCondition cond = get_where_condition(whereClause);
 
 			for(int i = 0; i < (int) joined_columns[0].values.size(); ++i)
 			{
@@ -203,9 +203,9 @@ void process_where(vector<column_data>& joined_columns, hsql::Expr* whereClause)
 			}
 
 			replace_columns(joined_columns, valid_rows);
-        }
-        else
-        {
+		}
+		else
+		{
 			bool column1_exists = false;
 			bool column2_exists = false;
 
@@ -297,8 +297,8 @@ void process_where(vector<column_data>& joined_columns, hsql::Expr* whereClause)
 			}
 
 			replace_columns(joined_columns, valid_rows);
-        }        
-    }
+		}        
+	}
 
-    return;
+	return;
 }
