@@ -22,41 +22,41 @@ void process_select(vector<column_data>& joined_columns, hsql::SelectStatement* 
         if((*sel->selectList)[i]->type == hsql::kExprFunctionRef)
         {
             if((*sel->selectList)[i]->exprList->size() != 1 || (*(*sel->selectList)[i]->exprList)[0]->type != 6)
-			{
-				fprintf(stderr, "Error: Cannot apply aggregation function.\n");
-				exit(1);
-			}
+            {
+                fprintf(stderr, "Error: Cannot apply aggregation function.\n");
+                exit(1);
+            }
 
-			if((*(*sel->selectList)[i]->exprList)[0]->table) temp.table = (*(*sel->selectList)[i]->exprList)[0]->table;
-			temp.column = (*(*sel->selectList)[i]->exprList)[0]->getName();
+            if((*(*sel->selectList)[i]->exprList)[0]->table) temp.table = (*(*sel->selectList)[i]->exprList)[0]->table;
+            temp.column = (*(*sel->selectList)[i]->exprList)[0]->getName();
 
             string aggr_funct = (*sel->selectList)[i]->getName();
             transform(aggr_funct.begin(), aggr_funct.end(), aggr_funct.begin(), ::toupper);
             if(aggr_funct == "SUM") temp.aggr = Sum;
-			else if(aggr_funct == "AVERAGE") temp.aggr = Average;
-			else if(aggr_funct == "MAX") temp.aggr = Max;
-			else if(aggr_funct == "MIN") temp.aggr = Min;
-			else
-			{
-				fprintf(stderr, "Error: Unknown function.\n");
-				exit(1);
-			}
+            else if(aggr_funct == "AVERAGE") temp.aggr = Average;
+            else if(aggr_funct == "MAX") temp.aggr = Max;
+            else if(aggr_funct == "MIN") temp.aggr = Min;
+            else
+            {
+                fprintf(stderr, "Error: Unknown function.\n");
+                exit(1);
+            }
         }
         else if((*sel->selectList)[i]->type == hsql::kExprStar)
-		{
-			if((*sel->selectList)[i]->table) temp.table = (*sel->selectList)[i]->table;
+        {
+            if((*sel->selectList)[i]->table) temp.table = (*sel->selectList)[i]->table;
             temp.column = "*";
-		}
+        }
         else if((*sel->selectList)[i]->type == hsql::kExprColumnRef)
-		{
-			if((*sel->selectList)[i]->table) temp.table = (*sel->selectList)[i]->table;
+        {
+            if((*sel->selectList)[i]->table) temp.table = (*sel->selectList)[i]->table;
             temp.column = (*sel->selectList)[i]->getName();
-		}
-		else
-		{
-			fprintf(stderr, "Error: Invalid SQL query.\n");
-			exit(1);
-		}
+        }
+        else
+        {
+            fprintf(stderr, "Error: Invalid SQL query.\n");
+            exit(1);
+        }
 
         select_columns.push_back(temp);
     }
@@ -80,7 +80,7 @@ void process_select(vector<column_data>& joined_columns, hsql::SelectStatement* 
     string where_column2 = "";
 
     if(sel->whereClause && sel->whereClause->opType == hsql::kOpEquals)
-	{
+    {
         if(sel->whereClause->expr->type == hsql::kExprColumnRef && sel->whereClause->expr2->type == hsql::kExprColumnRef)
         {
             if(sel->whereClause->expr->table) where_table1 = sel->whereClause->expr->table;
@@ -126,19 +126,19 @@ void process_select(vector<column_data>& joined_columns, hsql::SelectStatement* 
             }
         }
         if(!column_exists)
-		{
-			std::cerr << "Error: " << select_columns[i].table;
-			if(select_columns[i].table != "") std::cerr << ".";
-			std::cerr << select_columns[i].column << " does not exist.\n";
-			exit(1);
-		}
+        {
+            std::cerr << "Error: " << select_columns[i].table;
+            if(select_columns[i].table != "") std::cerr << ".";
+            std::cerr << select_columns[i].column << " does not exist.\n";
+            exit(1);
+        }
         if(column_count > 1)
         {
-			std::cerr << "Error: " << select_columns[i].column << " exists in more than one table.\n";
-			exit(1);
-		}
+            std::cerr << "Error: " << select_columns[i].column << " exists in more than one table.\n";
+            exit(1);
+        }
     }
-    
+
     if(final_columns[0].values.size() > 0 && final_columns[0].aggr != None)
     {
         for(int i = 0; i < (int) final_columns.size(); ++i)
@@ -164,6 +164,6 @@ void process_select(vector<column_data>& joined_columns, hsql::SelectStatement* 
     }
 
     print_table(final_columns, sel->selectDistinct);
-    
+
     return;
 }
