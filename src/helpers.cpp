@@ -90,7 +90,7 @@ void join(vector<vector<double>>& out, vector<column_data>& inp, vector<double>&
         join(out, inp, cur, ind+1, inp[ind].table, prev_ind);
         cur.pop_back();
     }
-    
+
 
     return;
 }
