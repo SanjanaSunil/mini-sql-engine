@@ -44,7 +44,7 @@ unordered_map<string, vector<string>> read_metadata(string metadata_file_path) {
     }
 
     metadata_file.close();
-    
+
     return tables;
 }
 
