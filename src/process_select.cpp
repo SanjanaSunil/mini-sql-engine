@@ -21,7 +21,7 @@ void process_select(vector<column_data>& joined_columns, hsql::SelectStatement* 
 
         if((*sel->selectList)[i]->type == hsql::kExprFunctionRef)
         {
-            if((*sel->selectList)[i]->exprList->size() != 1 || (*(*sel->selectList)[i]->exprList)[0]->type != 6)
+            if((*sel->selectList)[i]->exprList == NULL || (*sel->selectList)[i]->exprList->size() != 1 || (*(*sel->selectList)[i]->exprList)[0]->type != 6)
             {
                 fprintf(stderr, "Error: Cannot apply aggregation function.\n");
                 exit(1);
